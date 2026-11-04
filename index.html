@@ -368,16 +368,16 @@
         <!-- Corridor Floor Pathway & FULL-BODY AVATAR (Pink Frock, Hands, Legs, Shoes) -->
         <div class="relative w-full mt-4 pt-6 pb-2 hallway-floor rounded-xl px-4">
           
-          <!-- Guide Runway with Markers -->
+          <!-- Guide Runway with Markers matching Door centers exactly (12.5%, 37.5%, 62.5%, 87.5%) -->
           <div class="relative w-full h-2 bg-[#1B1931] rounded-full border border-[#453C68]">
-            <div class="absolute left-[12%] -top-1 w-4 h-4 rounded-full bg-[#ED9E59] border-2 border-white shadow"></div>
-            <div class="absolute left-[37%] -top-1 w-4 h-4 rounded-full bg-[#A34054] border-2 border-white shadow"></div>
-            <div class="absolute left-[62%] -top-1 w-4 h-4 rounded-full bg-[#662249] border-2 border-white shadow"></div>
-            <div class="absolute left-[88%] -top-1 w-4 h-4 rounded-full bg-[#ED9E59] border-2 border-white shadow"></div>
+            <div class="absolute left-[12.5%] -translate-x-1/2 -top-1 w-4 h-4 rounded-full bg-[#ED9E59] border-2 border-white shadow"></div>
+            <div class="absolute left-[37.5%] -translate-x-1/2 -top-1 w-4 h-4 rounded-full bg-[#A34054] border-2 border-white shadow"></div>
+            <div class="absolute left-[62.5%] -translate-x-1/2 -top-1 w-4 h-4 rounded-full bg-[#662249] border-2 border-white shadow"></div>
+            <div class="absolute left-[87.5%] -translate-x-1/2 -top-1 w-4 h-4 rounded-full bg-[#ED9E59] border-2 border-white shadow"></div>
           </div>
 
           <!-- FULL-BODY AVATAR: KUMARI NANDINI (Pink Frock, Cute Hands, Legs & Shoes) -->
-          <div id="nandini-avatar" class="relative transition-all duration-500 ease-out flex flex-col items-center w-28 py-3" style="margin-left: 10%;">
+          <div id="nandini-avatar" class="relative transition-all duration-500 ease-out flex flex-col items-center w-28 py-3 -translate-x-1/2" style="left: 12.5%;">
             
             <!-- Floating Name Tag -->
             <div class="px-2.5 py-0.5 rounded-md bg-[#1B1931] border border-[#ED9E59] text-[#ED9E59] text-[11px] font-bold shadow mb-1.5 flex items-center gap-1">
@@ -985,8 +985,8 @@
     const state = {
       currentYearUnlocked: 1,
       avatarPositionIndex: 0,
-      doorPercentages: [10, 35, 60, 85],
-      voiceActive: false,
+      doorPercentages: [12.5, 37.5, 62.5, 87.5],
+      voiceActive: true,
       speechRecognition: null,
 
       // Door 1: 3D Spheres with specified skills
@@ -1064,13 +1064,13 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // Avatar movement
+    // Avatar movement aligned perfectly with runway dots
     function updateAvatarPosition(index) {
       if (index < 0) index = 0;
       if (index > 3) index = 3;
       state.avatarPositionIndex = index;
       const avatar = document.getElementById('nandini-avatar');
-      avatar.style.marginLeft = `${state.doorPercentages[index]}%`;
+      avatar.style.left = `${state.doorPercentages[index]}%`;
 
       const yearNames = [
         "Year 1: Foundations & Edge Vision",
@@ -1290,18 +1290,18 @@
       state.game2.currentOrder.forEach((id, idx) => {
         const item = pipelineData[id];
         const block = document.createElement('div');
-        block.className = 'p-3.5 rounded-xl border border-[#453C68] bg-[#2B2647] flex items-center justify-between transition hover:border-[#ED9E59] shadow';
+        block.className = 'p-3 rounded-xl border border-[#453C68] bg-[#2B2647] flex items-center justify-between transition hover:border-[#ED9E59] shadow';
         block.innerHTML = `
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-[#1B1931] text-[#ED9E59] font-bold text-xs flex items-center justify-center border border-[#453C68]">
+            <div class="w-7 h-7 rounded-lg bg-[#1B1931] text-[#ED9E59] font-bold text-xs flex items-center justify-center border border-[#453C68] flex-shrink-0">
               ${idx + 1}
             </div>
             <div>
-              <div class="text-xs font-bold text-white">${item.label}</div>
-              <div class="text-[11px] text-[#E9BCB9]">${item.desc}</div>
+              <div class="text-xs font-bold text-white leading-tight">${item.label}</div>
+              <div class="text-[10px] text-[#E9BCB9]/80 mt-0.5 leading-snug">${item.desc}</div>
             </div>
           </div>
-          <div class="flex items-center gap-1">
+          <div class="flex items-center gap-1 flex-shrink-0 ml-2">
             <button onclick="moveSingleColumnItem(${idx}, -1); event.stopPropagation();" class="p-1 rounded bg-[#1B1931] hover:bg-[#453C68] text-white transition border border-[#453C68]" title="Move Up">
               <i data-lucide="chevron-up" class="w-3.5 h-3.5 text-[#ED9E59]"></i>
             </button>
@@ -1508,138 +1508,152 @@
 
 
     /* ========================================================
-       WISPR FLOW VOICE RECOGNITION (PERSISTENT & ACCURATE)
+       WISPR FLOW VOICE RECOGNITION (Direct Clean Implementation)
        ======================================================== */
-    function toggleVoiceRecognition() {
+    function initSpeechRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        showVoiceToast("Speech API not supported in this browser. Please use Chrome or Edge.", true);
+        showVoiceToast("Speech API not supported in browser. Use clicks.", true);
+        return;
+      }
+
+      state.speechRecognition = new SpeechRecognition();
+      state.speechRecognition.continuous = true;
+      state.speechRecognition.interimResults = true;
+      state.speechRecognition.lang = 'en-US';
+
+      state.speechRecognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0].transcript)
+          .join('')
+          .toLowerCase();
+
+        showVoiceToast(`"${transcript.trim()}"`, false);
+        handleVoiceCommands(transcript);
+      };
+
+      state.speechRecognition.onerror = (e) => {
+        console.warn("Speech recognition note:", e.error);
+        if (e.error === 'not-allowed') {
+          showVoiceToast("Microphone access blocked.", true);
+          state.voiceActive = false;
+          updateVoiceUI();
+        }
+      };
+
+      state.speechRecognition.onend = () => {
+        if (state.voiceActive) {
+          try { state.speechRecognition.start(); } catch(e){}
+        }
+      };
+
+      if (state.voiceActive) {
+        try {
+          state.speechRecognition.start();
+          updateVoiceUI();
+        } catch(e) {}
+      }
+    }
+
+    function toggleVoiceRecognition() {
+      state.voiceActive = !state.voiceActive;
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showVoiceToast("Speech API not supported in this browser.", true);
+        return;
+      }
+
+      if (!state.speechRecognition) {
+        initSpeechRecognition();
         return;
       }
 
       if (state.voiceActive) {
-        stopVoiceRecognition();
+        try { state.speechRecognition.start(); } catch(e){}
       } else {
-        startVoiceRecognition();
+        try { state.speechRecognition.stop(); } catch(e){}
       }
+      updateVoiceUI();
     }
 
-    async function startVoiceRecognition() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return;
+    function updateVoiceUI() {
+      const micDot = document.getElementById('voice-pulse-dot');
+      const micBtnText = document.getElementById('voice-status-text');
+      const micIcon = document.getElementById('voice-icon');
 
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(track => track.stop());
-        } catch (err) {
-          console.warn("Mic probe:", err);
-        }
+      if (state.voiceActive) {
+        if (micDot) micDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+        if (micBtnText) micBtnText.innerText = "Wispr Voice: Active";
+        if (micIcon) micIcon.className = "w-3.5 h-3.5 text-emerald-400";
+        showVoiceToast("Listening: 'Go to door 1-4', 'Pop', 'Verify', 'Deploy'");
+      } else {
+        if (micDot) micDot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+        if (micBtnText) micBtnText.innerText = "Wispr Voice: Paused";
+        if (micIcon) micIcon.className = "w-3.5 h-3.5 text-slate-400";
       }
-
-      try {
-        if (state.speechRecognition) {
-          try { state.speechRecognition.abort(); } catch(e) {}
-        }
-
-        state.speechRecognition = new SpeechRecognition();
-        state.speechRecognition.continuous = true;
-        state.speechRecognition.interimResults = true;
-        state.speechRecognition.lang = 'en-US';
-
-        state.speechRecognition.onstart = () => {
-          state.voiceActive = true;
-          document.getElementById('voice-pulse-dot').className = 'w-2.5 h-2.5 rounded-full bg-[#ED9E59] animate-pulse';
-          document.getElementById('voice-status-text').innerText = 'Wispr Voice: Active';
-          showVoiceToast("Listening: 'Go to door 1-4', 'Pop', 'Verify', 'Deploy'");
-        };
-
-        state.speechRecognition.onresult = (event) => {
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript.trim();
-            if (transcript.length > 0) {
-              showVoiceToast(`Heard: "${transcript}"`, false);
-              processVoiceCommand(transcript);
-            }
-          }
-        };
-
-        state.speechRecognition.onerror = (event) => {
-          if (event.error === 'not-allowed') {
-            showVoiceToast("Microphone blocked in browser settings.", true);
-            stopVoiceRecognition();
-          }
-        };
-
-        state.speechRecognition.onend = () => {
-          if (state.voiceActive) {
-            setTimeout(() => {
-              if (state.voiceActive) {
-                try { state.speechRecognition.start(); } catch(e) {}
-              }
-            }, 300);
-          } else {
-            stopVoiceRecognition();
-          }
-        };
-
-        state.speechRecognition.start();
-      } catch (e) {
-        showVoiceToast("Could not start speech recognition.", true);
-      }
-    }
-
-    function stopVoiceRecognition() {
-      state.voiceActive = false;
-      if (state.speechRecognition) {
-        try { state.speechRecognition.stop(); } catch(e) {}
-      }
-      document.getElementById('voice-pulse-dot').className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
-      document.getElementById('voice-status-text').innerText = 'Wispr Voice: Ready';
     }
 
     function showVoiceToast(text, persistent = false) {
       const toast = document.getElementById('voice-toast');
       const textSpan = document.getElementById('voice-transcript');
-      textSpan.innerText = text;
-      toast.classList.remove('hidden');
-      toast.classList.add('flex');
-
-      if (!persistent && !state.voiceActive) {
-        setTimeout(() => {
-          if (!state.voiceActive) toast.classList.add('hidden');
-        }, 3200);
+      if (textSpan) textSpan.innerText = text;
+      if (toast) {
+        toast.classList.remove('hidden');
+        toast.classList.add('flex');
+        if (!persistent && !state.voiceActive) {
+          setTimeout(() => {
+            if (!state.voiceActive) toast.classList.add('hidden');
+          }, 3200);
+        }
       }
     }
 
     let lastVoiceCmd = "";
     let lastVoiceTime = 0;
 
-    function processVoiceCommand(cmd) {
-      const lower = cmd.toLowerCase().trim();
+    function handleVoiceCommands(phrase) {
       const now = Date.now();
-      if (lower === lastVoiceCmd && (now - lastVoiceTime) < 1200) return;
+      if (phrase === lastVoiceCmd && (now - lastVoiceTime) < 1000) return;
 
       let matched = false;
 
-      if (lower.includes("door 1") || lower.includes("year 1")) {
+      // Navigation Commands
+      if (phrase.includes("door 1") || phrase.includes("year 1") || phrase.includes("first year")) {
         enterDoor(1);
         matched = true;
-      } else if (lower.includes("door 2") || lower.includes("year 2")) {
+      } else if (phrase.includes("door 2") || phrase.includes("year 2") || phrase.includes("second year")) {
         enterDoor(2);
         matched = true;
-      } else if (lower.includes("door 3") || lower.includes("year 3")) {
+      } else if (phrase.includes("door 3") || phrase.includes("year 3") || phrase.includes("third year")) {
         enterDoor(3);
         matched = true;
-      } else if (lower.includes("door 4") || lower.includes("year 4")) {
+      } else if (phrase.includes("door 4") || phrase.includes("year 4") || phrase.includes("fourth year")) {
         enterDoor(4);
         matched = true;
-      } else if (lower.includes("pop") || lower.includes("python") || lower.includes("c++") || lower.includes("linux") || lower.includes("esp") || lower.includes("math")) {
-        matched = voicePopKeyword(lower);
-      } else if (lower.includes("next") || lower.includes("verify") || lower.includes("sort")) {
+      } else if (phrase.includes("corridor") || phrase.includes("back") || phrase.includes("hallway") || phrase.includes("return")) {
+        goToHallway();
+        matched = true;
+      } else if (phrase.includes("summary") || phrase.includes("resume") || phrase.includes("portfolio")) {
+        openFinalPortfolioModal();
+        matched = true;
+      } else if (phrase.includes("reset")) {
+        resetGame(state.avatarPositionIndex + 1);
+        matched = true;
+      }
+
+      // Game 1 Bubble Commands
+      if (phrase.includes("pop") || phrase.includes("python") || phrase.includes("c++") || phrase.includes("linux") || phrase.includes("esp") || phrase.includes("math")) {
+        matched = voicePopKeyword(phrase);
+      }
+
+      // Game 2 Puzzle / Pipeline Commands
+      if (phrase.includes("next") || phrase.includes("verify") || phrase.includes("sort") || phrase.includes("dsa") || phrase.includes("solve")) {
         checkYear2Order();
         matched = true;
-      } else if (lower.includes("deploy") || lower.includes("terraform")) {
+      }
+
+      // Game 3 Cloud Node / Terraform Commands
+      if (phrase.includes("deploy") || phrase.includes("terraform") || phrase.includes("apply")) {
         if (!document.getElementById('game-modal-3').classList.contains('hidden')) {
           state.game3.connectedNodes = ["waf", "alb", "ec2", "s3"];
           updateNodesDisplay();
@@ -1649,36 +1663,30 @@
           checkYear2Order();
           matched = true;
         }
-      } else if (lower.includes("connect")) {
+      } else if (phrase.includes("connect") || phrase.includes("aws") || phrase.includes("wire")) {
         state.game3.connectedNodes = ["waf", "alb", "ec2", "s3"];
         updateNodesDisplay();
         showVoiceToast("Architecture nodes connected!");
         matched = true;
-      } else if (lower.includes("system design")) {
+      }
+
+      // Game 4 Drop / Pillar Commands
+      if (phrase.includes("system") || phrase.includes("design")) {
         togglePillar(1);
         matched = true;
-      } else if (lower.includes("database")) {
+      } else if (phrase.includes("database") || phrase.includes("optimization")) {
         togglePillar(2);
         matched = true;
-      } else if (lower.includes("core")) {
+      } else if (phrase.includes("core") || phrase.includes("fundamental")) {
         togglePillar(3);
         matched = true;
-      } else if (lower.includes("placement")) {
+      } else if (phrase.includes("placement") || phrase.includes("mastery")) {
         togglePillar(4);
-        matched = true;
-      } else if (lower.includes("reset")) {
-        resetGame(state.avatarPositionIndex + 1);
-        matched = true;
-      } else if (lower.includes("resume") || lower.includes("portfolio")) {
-        openFinalPortfolioModal();
-        matched = true;
-      } else if (lower.includes("hallway") || lower.includes("corridor")) {
-        goToHallway();
         matched = true;
       }
 
       if (matched) {
-        lastVoiceCmd = lower;
+        lastVoiceCmd = phrase;
         lastVoiceTime = now;
         playChime('pop');
       }
@@ -1710,11 +1718,12 @@
       if (e.key === 'Escape') goToHallway();
     });
 
-    // Initial load
+    // On Initial Load
     window.addEventListener('DOMContentLoaded', () => {
       updateAvatarPosition(0);
       updateDoorsUI();
       refreshIcons();
+      initSpeechRecognition();
     });
   </script>
 </body>
